@@ -1,0 +1,13 @@
+[MASTER]
+jobs=4
+persistent=yes
+suggestion-mode=yes
+
+[MESSAGES CONTROL]
+disable=
+
+[REPORTS]
+evaluation=10.0 - ((float(5 * error + warning + refactor + convention) / statement) * 10)
+output-format=colorized
+reports=no
+score=yes
