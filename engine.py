@@ -1,18 +1,31 @@
+"""Module defining the game engine, handling concurrency and actions.
+"""
+
 from __future__ import annotations
-from typing import List, Tuple
-from mind import Mind, UserMind, RandomMind
-from position import Position
-import pickle
-from os.path import isfile
+
 import os
+import pickle
+import sys
+from os.path import isfile
+from typing import Tuple
+
 from board import Board
-from time import sleep
+from mind import Mind, RandomMind
+from position import Position
+
 
 class Player:
+    """Defines the playing mind, by associating a color and balls.
+
+    Attributes:
+        mind (Mind): The intelligence playing.
+        balls (int): Init balls number.
+        color (str): Player balls color.
+    """
     mind: Mind
     balls: int = 15
     color: str = None
-    
+
     def __init__(self, mind: Mind, color: str):
         assert color in Engine.COLORS, f"color not in {Engine.COLORS}"
         self.color = color
@@ -24,6 +37,18 @@ class Player:
 
 
 class Engine:
+    """Defines the game Egnine, handling actions from minds and on the board.
+
+    Attributes:
+        size (int): The size, ie the size of the base floor.
+        board (Board): The board storing the game state.
+        players (Player, Player): The two players playing the game.
+        round (int): Current game round.
+
+    Const:
+        COLORS (str, str): Available balls colors.
+        ACTIONS (dict): Available actions for minds, with the number of positions to give as value.
+    """
     size: int = 4
     board: Board = None
     players: Tuple[Player, Player] = (None, None)
@@ -52,6 +77,11 @@ class Engine:
     ## GETTERS
 
     def get_winner(self) -> Mind:
+        """Gets the winner if it exists on the board.
+
+        Returns:
+            Player if he has won, None if the top cell is empty.
+        """
         pos = Position(self.size - 1, 0, 0)
         color = self.board.get_color(pos)
         if color is None:
@@ -59,7 +89,7 @@ class Engine:
         for player in self.players:
             if player.color == color:
                 return player
-        raise ValueError(f"no winner found for color {color}")
+        raise AssertionError(f"no winner found for color {color}")
 
     ## ACTIONS
 
@@ -97,19 +127,22 @@ class Engine:
         color = self.board.get_color(from_pos)
         assert color == player.color, f"{player} player can't move {color} ball"
         self._move_ball(from_pos, to_pos)
-        
+
 
     ## SCRIPTS
     def save(self):
-        with open('save.data', 'wb') as f:
-            pickle.dump((self.board, self.players, self.round), f)
+        """Saves the game state to save file."""
+        with open('save.data', 'wb') as file:
+            pickle.dump((self.board, self.players, self.round), file)
 
     def load(self):
+        """Loads the game state from save file if it exists."""
         if isfile('save.data'):
-            with open('save.data', 'rb') as f:
-                self.board, self.players, self.round = pickle.load(f)
+            with open('save.data', 'rb') as file:
+                self.board, self.players, self.round = pickle.load(file)
 
     def run(self):
+        """Runs the main engine event loop."""
         print(self.board)
         while self.get_winner() is None:
             # sleep(0.1)
@@ -117,7 +150,11 @@ class Engine:
             opponent = self.players[(self.round + 1) % 2]
             print(f"[{player}:{player.balls}] ", end="")
             try:
-                action, positions = player.mind.choose_action(self.board, player.balls, opponent.balls)
+                action, positions = player.mind.choose_action(
+                    self.board,
+                    player.balls,
+                    opponent.balls
+                )
             except AssertionError as err:
                 print(err)
                 continue
@@ -125,12 +162,12 @@ class Engine:
                 print(f"action:{action} doesn't exist")
                 continue
             if len(positions) != self.ACTIONS.get(action):
-                print(f"the number {len(positions)} of positions doesn't fit with the action:{action}")
+                print(f"action:{action} requires {len(positions)} positions")
                 continue
             if action == 'save':
                 self.save()
                 self.round += 1
-                quit(0)
+                sys.exit()
             elif action == 'put':
                 try:
                     self._player_put_ball(player, *positions)
@@ -149,15 +186,16 @@ class Engine:
 
         winner = self.get_winner()
         print(f"player:{winner} has won !")
-        if isfile('save.data'): os.remove('save.data')
+        if isfile('save.data'):
+            os.remove('save.data')
 
 
 if __name__ == "__main__":
     # engine = Engine((UserMind('kaga'), UserMind('eno')), 4)
-    engine = Engine((RandomMind('bot1'), RandomMind('bot2')), 4)
+    ENGINE = Engine((RandomMind('bot1'), RandomMind('bot2')), 4)
     # for i in range(3):
     #     for j in range(3):
     #         pos = Position(0, i, j)
     #         engine._put_ball(engine.COLORS[(i+j)%2], pos)
     # engine._move_ball(Position(0, 2, 2), Position(1, 0, 0))
-    engine.run()
+    ENGINE.run()

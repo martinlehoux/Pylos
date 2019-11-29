@@ -1,12 +1,22 @@
+"""Module defining the Mind class and its subclasses, intelligences playing the game.
+"""
+
 from __future__ import annotations
-from typing import Tuple, List
-from position import Position
-from board import Board
+
 import random
+from typing import List, Tuple
+
+from board import Board
+from position import Position
 
 
 class Mind:
-    
+    """Abstract class for Intelligence playing.
+
+    Attributes:
+        name (str): Name of the mind, for display purpose only.
+    """
+
     def __init__(self, name: str):
         self.name = name
 
@@ -14,10 +24,22 @@ class Mind:
         return self.name
 
     def choose_action(self, board: Board, self_balls: int, opponent_balls: int) -> Tuple[str, List[Position]]:
+        """Choose an action for the engine by looking at the board.
+
+        Args:
+            board (Board): Board to look at for taking the decision.
+            self_balls (int): The player remaining balls.
+            opponent_balls (int): The opponent remaining balls.
+
+        Returns:
+            action (str): The action name.
+            positions (list): The list of positions to pass as args to the action.
+        """
         raise NotImplementedError("choose_action not implemented")
 
 
 class UserMind(Mind):
+    """Mind implementation that waits for user input."""
 
     def choose_action(self, board: Board, self_balls: int, opponent_balls: int) -> Tuple[str, List[Position]]:
         line = input(f"action ? ").split()
@@ -29,6 +51,7 @@ class UserMind(Mind):
 
 
 class RandomMind(Mind):
+    """Mind implementation that chooses a random 'put' position where it can play."""
 
     def choose_action(self, board: Board, self_balls: int, opponent_balls: int) -> Tuple[str, List[Position]]:
         available_positions: List[Position] = []
@@ -36,6 +59,7 @@ class RandomMind(Mind):
             for row in range(board.get_floor_size(floor)):
                 for col in range(board.get_floor_size(floor)):
                     pos = Position(floor, row, col)
-                    if all(map(board.get_color, board.get_below_pos(pos))) and board.get_color(pos) is None:
-                        available_positions.append(pos)
+                    if all(map(board.get_color, board.get_below_pos(pos))):
+                        if board.get_color(pos) is None:
+                            available_positions.append(pos)
         return 'put', random.choices(available_positions, k=1)

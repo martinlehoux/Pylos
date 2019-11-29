@@ -1,8 +1,19 @@
+"""Module defining the Position class, that store a position in a board."""
+
 from __future__ import annotations
+
 from dataclasses import dataclass
+
 
 @dataclass
 class Position:
+    """Position instance stores a position on a board.
+
+    Attributes:
+        floor (int): The floor where the virtual ball is located.
+        row (int): The row where the virtual ball is located.
+        col (int): The col where the virtual ball is located.
+    """
     floor: int
     row: int
     col: int
