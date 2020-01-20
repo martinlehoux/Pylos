@@ -7,3 +7,6 @@ install: env
 
 lint:
 	. env/bin/activate; isort --atomic *.py; pylint --exit-zero *.py
+
+test:
+	. env/bin/activate; pytest .
