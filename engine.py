@@ -10,7 +10,7 @@ from os.path import isfile
 from typing import Tuple
 
 from board import Board
-from mind import Mind, RandomMind
+from mind import Mind, RandomMind, UserMind
 from position import Position
 
 
@@ -192,7 +192,7 @@ class Engine:
 
 if __name__ == "__main__":
     # engine = Engine((UserMind('kaga'), UserMind('eno')), 4)
-    ENGINE = Engine((RandomMind('bot1'), RandomMind('bot2')), 4)
+    ENGINE = Engine((UserMind('kaga'), RandomMind('bot2')), 4)
     # for i in range(3):
     #     for j in range(3):
     #         pos = Position(0, i, j)
